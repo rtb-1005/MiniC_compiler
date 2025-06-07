@@ -1,0 +1,8 @@
+# Build directories
+build/
+
+# Visual Studio artifacts
+.vs/
+*.vcxproj*
+*.sln
+Project1/
