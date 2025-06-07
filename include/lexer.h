@@ -6,12 +6,12 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#define MAX_TOKEN_LEN 100  // ÿToken󳤶
+#define MAX_TOKEN_LEN 100  // 每个Token的最大长度
 
-// Minicֵ֧Ĺؼ
+// MiniC支持的关键字
 static const char* keywords[] = { "int", "float", "return", "if", "else", "while", "void", NULL };
 
-// öToken
+// 枚举Token
 typedef enum {
     TOKEN_KEYWORD,
     TOKEN_IDENTIFIER,
@@ -22,13 +22,13 @@ typedef enum {
     TOKEN_EOF
 } TokenType;
 
-// Tokenṹ壬ͺֵ
+// Token结构体，存储类型和值
 typedef struct {
     TokenType type;
     char value[MAX_TOKEN_LEN];
 } Token;
 
-// ʷ
+// 词法分析接口
 Token get_next_token(FILE* file);
 void print_token(Token token);
 

@@ -5,10 +5,10 @@
 void print_ast(ASTNode* node, int level) {
     if (node == NULL) return;
 
-    // ʾ㼶
+    // 显示缩进级别
     for (int i = 0; i < level; i++) printf("  ");
 
-    // ӡڵͺֵ
+    // 打印节点类型和值
     const char* node_types[] = {
         "PROGRAM", "FUNCTION_DECL", "VAR_DECL", "ASSIGNMENT", "BINARY_OP",
         "NUMBER", "VARIABLE", "RETURN", "IF", "WHILE", "COMPOUND_STMT",
@@ -17,7 +17,7 @@ void print_ast(ASTNode* node, int level) {
 
     printf("[%s] %s\n", node_types[node->type], node->value);
 
-    // ݹӡӽڵ
+    // 递归打印子节点
     print_ast(node->left, level + 1);
     print_ast(node->right, level + 1);
 
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // ʷ
+    // 词法分析
     printf("=== Lexical Analysis ===\n");
     Token token;
     do {
@@ -46,10 +46,10 @@ int main(int argc, char* argv[]) {
         print_token(token);
     } while (token.type != TOKEN_EOF);
 
-    // ļָ
+    // 文件回到开头
     rewind(file);
 
-    // ﷨
+    // 语法分析
     printf("\n=== Syntax Analysis ===\n");
     Parser parser;
     init_parser(&parser, file);
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     printf("\n=== Abstract Syntax Tree ===\n");
     print_ast(ast, 0);
 
-    // Դ
+    // 释放资源
     free_ast(ast);
     fclose(file);
     return 0;
