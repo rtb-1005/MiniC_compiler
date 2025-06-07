@@ -4,7 +4,11 @@
 #include <string.h>
 
 // 解析错误处理
-static void parser_error(const char* message) {
+static void parser_error(Parser* parser, const char* message) {
+    if (error_file) {
+        fprintf(error_file, "Line %d: %s\n", parser->current_token.line, message);
+    }
+    error_count++;
     fprintf(stderr, "Parser Error: %s\n", message);
     exit(1);
 }
@@ -17,7 +21,7 @@ static void eat(Parser* parser, TokenType expected_type) {
         char msg[100];
         sprintf(msg, "Expected token type %d, got %d", expected_type,
                 parser->current_token.type);
-        parser_error(msg);
+        parser_error(parser, msg);
     }
 }
 
@@ -27,12 +31,21 @@ void init_parser(Parser* parser, FILE* file) {
     parser->current_token = get_next_token(file);
 }
 
-// ===================== 辅助函数声明 =====================
+// ---------- 辅助函数声明 ----------
 static ASTNode* parse_program(Parser* parser);
 static ASTNode* parse_function(Parser* parser);
 static ASTNode* parse_compound(Parser* parser);
 static ASTNode* parse_statement(Parser* parser);
 static ASTNode* parse_expression(Parser* parser);
+static ASTNode* parse_if(Parser* parser);
+static ASTNode* parse_while(Parser* parser);
+static ASTNode* parse_var_decl(Parser* parser);
+static ASTNode* parse_assignment(Parser* parser);
+static ASTNode* parse_return(Parser* parser);
+static ASTNode* parse_factor(Parser* parser);
+static ASTNode* parse_term(Parser* parser);
+static ASTNode* parse_arith_expr(Parser* parser);
+static ASTNode* parse_comparison(Parser* parser);
 
 // 创建节点
 static ASTNode* create_node(ASTNodeType type, const char* value) {
@@ -53,7 +66,7 @@ static ASTNode* create_node(ASTNodeType type, const char* value) {
     return node;
 }
 
-// ===================== 语法规则实现 =====================
+// ---------- 语法规则实现 ----------
 
 // 解析入口
 ASTNode* parse(Parser* parser) { return parse_program(parser); }
@@ -74,11 +87,11 @@ static ASTNode* parse_program(Parser* parser) {
 static ASTNode* parse_function(Parser* parser) {
     if (parser->current_token.type != TOKEN_KEYWORD ||
         strcmp(parser->current_token.value, "int") != 0)
-        parser_error("function must start with 'int'");
+        parser_error(parser, "function must start with 'int'");
     eat(parser, TOKEN_KEYWORD);
 
     if (parser->current_token.type != TOKEN_IDENTIFIER)
-        parser_error("expect function name");
+        parser_error(parser, "expect function name");
     char name[MAX_TOKEN_LEN];
     strncpy(name, parser->current_token.value, MAX_TOKEN_LEN);
     eat(parser, TOKEN_IDENTIFIER);
@@ -95,7 +108,7 @@ static ASTNode* parse_function(Parser* parser) {
 static ASTNode* parse_compound(Parser* parser) {
     if (parser->current_token.type != TOKEN_SEPARATOR ||
         strcmp(parser->current_token.value, "{") != 0)
-        parser_error("expected '{'");
+        parser_error(parser, "expected '{'");
     eat(parser, TOKEN_SEPARATOR);
 
     ASTNode* node = create_node(AST_COMPOUND_STMT, "");
@@ -151,7 +164,7 @@ static ASTNode* parse_var_decl(Parser* parser) {
     eat(parser, TOKEN_KEYWORD); // int
 
     if (parser->current_token.type != TOKEN_IDENTIFIER)
-        parser_error("expect variable name");
+        parser_error(parser, "expect variable name");
     char name[MAX_TOKEN_LEN];
     strncpy(name, parser->current_token.value, MAX_TOKEN_LEN);
     eat(parser, TOKEN_IDENTIFIER);
@@ -166,7 +179,7 @@ static ASTNode* parse_var_decl(Parser* parser) {
 
     if (parser->current_token.type != TOKEN_SEPARATOR ||
         strcmp(parser->current_token.value, ";") != 0)
-        parser_error("expected ';'");
+        parser_error(parser, "expected ';'");
     eat(parser, TOKEN_SEPARATOR);
     return node;
 }
@@ -174,14 +187,14 @@ static ASTNode* parse_var_decl(Parser* parser) {
 // assignment ::= IDENTIFIER '=' expression ';'
 static ASTNode* parse_assignment(Parser* parser) {
     if (parser->current_token.type != TOKEN_IDENTIFIER)
-        parser_error("expect variable name");
+        parser_error(parser, "expect variable name");
     char name[MAX_TOKEN_LEN];
     strncpy(name, parser->current_token.value, MAX_TOKEN_LEN);
     eat(parser, TOKEN_IDENTIFIER);
 
     if (parser->current_token.type != TOKEN_OPERATOR ||
         strcmp(parser->current_token.value, "=") != 0)
-        parser_error("expected '='");
+        parser_error(parser, "expected '='");
     eat(parser, TOKEN_OPERATOR);
 
     ASTNode* node = create_node(AST_ASSIGNMENT, name);
@@ -189,7 +202,7 @@ static ASTNode* parse_assignment(Parser* parser) {
 
     if (parser->current_token.type != TOKEN_SEPARATOR ||
         strcmp(parser->current_token.value, ";") != 0)
-        parser_error("expected ';'");
+        parser_error(parser, "expected ';'");
     eat(parser, TOKEN_SEPARATOR);
     return node;
 }
@@ -202,7 +215,7 @@ static ASTNode* parse_return(Parser* parser) {
 
     if (parser->current_token.type != TOKEN_SEPARATOR ||
         strcmp(parser->current_token.value, ";") != 0)
-        parser_error("expected ';'");
+        parser_error(parser, "expected ';'");
     eat(parser, TOKEN_SEPARATOR);
     return node;
 }
@@ -245,11 +258,11 @@ static ASTNode* parse_factor(Parser* parser) {
         ASTNode* node = parse_expression(parser);
         if (parser->current_token.type != TOKEN_SEPARATOR ||
             strcmp(parser->current_token.value, ")") != 0)
-            parser_error("expected ')'");
+            parser_error(parser, "expected ')'");
         eat(parser, TOKEN_SEPARATOR);
         return node;
     }
-    parser_error("invalid factor");
+    parser_error(parser, "invalid factor");
     return NULL;
 }
 
