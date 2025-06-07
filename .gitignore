@@ -6,3 +6,4 @@ build/
 *.vcxproj*
 *.sln
 Project1/
+output_error

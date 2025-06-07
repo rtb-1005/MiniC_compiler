@@ -1,6 +1,6 @@
 #include "lexer.h"
 
-// жһַǷǹؼ
+// 判断字符串是否为关键字
 static int is_keyword(const char* str) {
     for (int i = 0; keywords[i]; ++i) {
         if (strcmp(str, keywords[i]) == 0)
@@ -9,27 +9,27 @@ static int is_keyword(const char* str) {
     return 0;
 }
 
-// жǷǲֵַַ֧
+// 判断字符是否为运算符
 static int is_operator_char(char c) {
     return strchr("+-*/=<>!&|", c) != NULL;
 }
 
-// жǷǷַָ
+// 判断字符是否为分隔符
 static int is_separator(char c) {
     return strchr("(){};,[]", c) != NULL;
 }
 
-// հַո񡢻СƱȣ
+// 跳过空格、制表符等空白字符
 static void skip_whitespace(FILE* file) {
     int c;
     while (isspace(c = fgetc(file)));
-    ungetc(c, file);  // ǿհַ˻ļ
+    ungetc(c, file);  // 将读取的非空白字符放回文件
 }
 
-// ʷȡһToken
+// 读取一个Token
 Token get_next_token(FILE* file) {
-    Token token = { TOKEN_UNKNOWN, "" };  // ʼToken
-    skip_whitespace(file);  // հ
+    Token token = { TOKEN_UNKNOWN, "" };  // 初始化Token
+    skip_whitespace(file);  // 跳过空白
 
     int c = fgetc(file);
     if (c == EOF) {
@@ -37,7 +37,7 @@ Token get_next_token(FILE* file) {
         return token;
     }
 
-    // ʶؼ֣ĸ»߿ͷ
+    // 识别关键字或标识符
     if (isalpha(c) || c == '_') {
         int i = 0;
         token.value[i++] = c;
@@ -47,11 +47,11 @@ Token get_next_token(FILE* file) {
         token.value[i] = '\0';
         ungetc(c, file);
 
-        // жǷΪؼ
+        // 判断是否为关键字
         token.type = is_keyword(token.value) ? TOKEN_KEYWORD : TOKEN_IDENTIFIER;
     }
 
-    // ֻ֣
+    // 识别数字
     else if (isdigit(c)) {
         int i = 0;
         token.value[i++] = c;
@@ -63,7 +63,7 @@ Token get_next_token(FILE* file) {
         token.type = TOKEN_NUMBER;
     }
 
-    // ֧˫ַ ==, !=, <=, >=
+    // 支持双字符运算符 ==, !=, <=, >=
     else if (is_operator_char(c)) {
         int i = 0;
         token.value[i++] = c;
@@ -79,14 +79,14 @@ Token get_next_token(FILE* file) {
         token.type = TOKEN_OPERATOR;
     }
 
-    // ָ ; , ( ) { } ȣ
+    // 分隔符 ; , ( ) { } 等
     else if (is_separator(c)) {
         token.value[0] = c;
         token.value[1] = '\0';
         token.type = TOKEN_SEPARATOR;
     }
 
-    // δַ֪
+    // 未知字符
     else {
         token.value[0] = c;
         token.value[1] = '\0';
@@ -96,7 +96,7 @@ Token get_next_token(FILE* file) {
     return token;
 }
 
-// ӡTokenϢ
+// 打印Token信息
 void print_token(Token token) {
     const char* type_str[] = {
         "KEYWORD", "IDENTIFIER", "NUMBER", "OPERATOR", "SEPARATOR", "UNKNOWN", "EOF"

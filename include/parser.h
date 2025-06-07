@@ -3,7 +3,7 @@
 
 #include "lexer.h"
 
-// ASTڵ
+// AST节点类型
 typedef enum {
     AST_PROGRAM,
     AST_FUNCTION_DECL,
@@ -20,7 +20,7 @@ typedef enum {
     AST_ARG_LIST
 } ASTNodeType;
 
-// ASTڵṹ
+// AST节点结构
 typedef struct ASTNode {
     ASTNodeType type;
     char value[MAX_TOKEN_LEN];
@@ -32,13 +32,13 @@ typedef struct ASTNode {
     int child_count;
 } ASTNode;
 
-// ﷨ṹ
+// 解析器结构
 typedef struct {
     Token current_token;
     FILE* source_file;
 } Parser;
 
-// 
+// 函数声明
 void init_parser(Parser* parser, FILE* file);
 ASTNode* parse(Parser* parser);
 void free_ast(ASTNode* node);
