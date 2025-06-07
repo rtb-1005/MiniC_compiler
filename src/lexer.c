@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "error_reporter.h"
 
 // 判断字符串是否为关键字
 static int is_keyword(const char* str) {
@@ -88,6 +89,9 @@ Token get_next_token(FILE* file) {
 
     // 未知字符
     else {
+        char msg[64];
+        snprintf(msg, sizeof(msg), "Unknown token: %c", c);
+        error_reporter_add(msg);
         token.value[0] = c;
         token.value[1] = '\0';
         token.type = TOKEN_UNKNOWN;
