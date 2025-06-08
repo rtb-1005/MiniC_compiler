@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "lexer.h"
 #include "parser.h"
+#include "error_reporter.h"
 
 void print_ast(ASTNode* node, int level) {
     if (node == NULL) return;
@@ -38,6 +39,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    error_reporter_init();
+
     // 词法分析
     printf("=== Lexical Analysis ===\n");
     Token token;
@@ -55,11 +58,16 @@ int main(int argc, char* argv[]) {
     init_parser(&parser, file);
 
     ASTNode* ast = parse(&parser);
-    printf("\n=== Abstract Syntax Tree ===\n");
-    print_ast(ast, 0);
+
+    if (!error_reporter_has_errors()) {
+        printf("\n=== Abstract Syntax Tree ===\n");
+        print_ast(ast, 0);
+    }
 
     // 释放资源
     free_ast(ast);
+    error_reporter_print();
+    error_reporter_free();
     fclose(file);
     return 0;
 }

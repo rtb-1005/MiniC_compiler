@@ -1,11 +1,16 @@
 #include "parser.h"
+#include "error_reporter.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // 解析错误处理
 static void parser_error(const char* message) {
-    fprintf(stderr, "Parser Error: %s\n", message);
+    char msg[256];
+    snprintf(msg, sizeof(msg), "Parser Error: %s", message);
+    error_reporter_add(msg);
+    error_reporter_print();
+    error_reporter_free();
     exit(1);
 }
 
