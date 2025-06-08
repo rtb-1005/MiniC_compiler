@@ -9,3 +9,6 @@ include_directories(include)
 file(GLOB SOURCES src/*.c)
 
 add_executable(minic ${SOURCES})
+
+enable_testing()
+add_subdirectory(tests)
